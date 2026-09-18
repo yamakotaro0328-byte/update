@@ -19,11 +19,21 @@
 ブロックされているため、ここでは `./gradlew build` の実行・検証ができていません。
 実際にビルドする際は repo.papermc.io に到達できる環境で行ってください。
 
-## 導入
+## 導入 (plugins.yml への登録は不要)
 
-1. `AutoUpdater-<version>.jar` を `plugins/` に配置
-2. サーバーを起動すると `plugins/AutoUpdater/config.yml` と `plugins/AutoUpdater/plugins.yml` が生成される
-3. `plugins.yml` に管理したいプラグインを追記する (自作/一般プラグイン問わず)
+1. `AutoUpdater-<version>.jar` を `plugins/` に配置して起動するだけで、
+   インストール済みの全プラグインが自動的にチェック対象になります。
+   更新元は次の優先順位で決まります:
+
+   1. `plugins/AutoUpdater/plugins.yml` への明示登録 (任意。精度を上げたい場合のみ)
+   2. 各プラグイン自身の `plugin.yml` に書かれた `autoupdate:` セクション (開発者による自己申告)
+   3. プラグイン名から Modrinth の slug を自動推測 (例: `EssentialsX` -> `essentialsx`)
+
+   3 で解決できないプラグインはステータスが `ERROR` になるだけで、他のプラグインには影響しません。
+   自動検出自体を止めたい場合は `config.yml` の `auto-update.auto-discover-unlisted: false` にしてください。
+
+2. GitHub Releases や Spigot(resource-id) は自動推測できないため、それらを使いたい場合や、
+   Modrinth の slug 推測がうまくいかない場合は `plugins.yml` に手動登録して上書きします:
 
 ```yaml
 plugins:
@@ -32,20 +42,22 @@ plugins:
     source: github
     repository: "yourname/Jobs"
 
-  EssentialsX:
-    enabled: true
-    source: modrinth
-    project: "essentialsx"
-    loader: "paper"
-
   ViaVersion:
     enabled: true
     source: spigot
     resource-id: 19254
 ```
 
-4. 必要に応じて `config.yml` を調整 (チェック間隔、自動ダウンロード可否、通知、セキュリティ設定など)
-5. `/autoupdate reload` または再起動で反映
+   あるいは自作プラグインの `plugin.yml` に直接埋め込むこともできます:
+
+```yaml
+autoupdate:
+  source: github
+  repository: "yourname/Jobs"
+```
+
+3. 必要に応じて `config.yml` を調整 (チェック間隔、自動ダウンロード可否、通知、セキュリティ設定など)
+4. `/autoupdate reload` または再起動で反映
 
 ## コマンド / 権限
 

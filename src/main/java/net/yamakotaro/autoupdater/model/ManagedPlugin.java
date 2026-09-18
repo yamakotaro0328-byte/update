@@ -1,6 +1,7 @@
 package net.yamakotaro.autoupdater.model;
 
 import net.yamakotaro.autoupdater.source.UpdateSourceType;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * plugins.yml 1エントリ分の設定。自作プラグインに限らず、
@@ -38,6 +39,19 @@ public final class ManagedPlugin {
         this.modrinthLoader = modrinthLoader;
         this.modrinthGameVersion = modrinthGameVersion;
         this.spigotResourceId = spigotResourceId;
+    }
+
+    /** plugins.yml / 自己申告 plugin.yml の "<name>:" もしくは "autoupdate:" セクションを解析する共通処理。 */
+    public static ManagedPlugin fromSection(String name, ConfigurationSection entry) {
+        boolean enabled = entry.getBoolean("enabled", true);
+        UpdateSourceType sourceType = UpdateSourceType.fromConfig(entry.getString("source", "github"));
+        return new ManagedPlugin(name, enabled, sourceType,
+                entry.getString("repository", ""),
+                entry.getString("asset-pattern", ""),
+                entry.getString("project", ""),
+                entry.getString("loader", "paper"),
+                entry.getString("game-version", ""),
+                entry.getInt("resource-id", -1));
     }
 
     public String getName() { return name; }

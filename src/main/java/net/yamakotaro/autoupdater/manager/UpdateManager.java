@@ -3,6 +3,7 @@ package net.yamakotaro.autoupdater.manager;
 import net.yamakotaro.autoupdater.backup.BackupManager;
 import net.yamakotaro.autoupdater.config.ConfigManager;
 import net.yamakotaro.autoupdater.config.ManagedPluginsConfig;
+import net.yamakotaro.autoupdater.config.SelfDeclaredConfig;
 import net.yamakotaro.autoupdater.http.DownloadResult;
 import net.yamakotaro.autoupdater.http.JarDownloader;
 import net.yamakotaro.autoupdater.model.ManagedPlugin;
@@ -11,6 +12,7 @@ import net.yamakotaro.autoupdater.model.UpdateInfo;
 import net.yamakotaro.autoupdater.model.UpdateStatus;
 import net.yamakotaro.autoupdater.notify.NotificationService;
 import net.yamakotaro.autoupdater.security.PackageVerifier;
+import net.yamakotaro.autoupdater.source.AutoDiscoverySource;
 import net.yamakotaro.autoupdater.source.GitHubReleaseSource;
 import net.yamakotaro.autoupdater.source.ModrinthSource;
 import net.yamakotaro.autoupdater.source.SpigotSource;
@@ -77,27 +79,47 @@ public final class UpdateManager {
                 plugin.getDataFolder().getParentFile().toPath().resolve("backups"),
                 configManager.getBackupKeepCount());
 
+        ModrinthSource modrinthSource = new ModrinthSource();
         sources.clear();
         sources.put(UpdateSourceType.GITHUB, new GitHubReleaseSource(configManager.getGithubApiBaseUrl()));
-        sources.put(UpdateSourceType.MODRINTH, new ModrinthSource());
+        sources.put(UpdateSourceType.MODRINTH, modrinthSource);
         sources.put(UpdateSourceType.SPIGOT, new SpigotSource());
+        sources.put(UpdateSourceType.NONE, new AutoDiscoverySource(modrinthSource));
         // CUSTOM は将来の独自アップデートサーバー対応用 (未実装時は checkOne 側で ERROR にする)
 
         pluginsConfig.load();
         states.clear();
-        for (ManagedPlugin mp : pluginsConfig.getManagedPlugins()) {
-            if (mp.getName().equalsIgnoreCase(plugin.getName())) {
-                notifier.consoleWarn("AutoUpdater 自身は自動更新の対象外です: " + mp.getName());
-                continue;
+
+        // plugins.yml に何も登録しなくても、サーバーにインストール済みの全プラグインを自動で対象にする。
+        // 優先順位: (1) plugins.yml の手動登録 (2) プラグイン自身の plugin.yml の autoupdate セクション
+        //          (3) Modrinth slug の自動推測
+        for (Plugin installed : Bukkit.getPluginManager().getPlugins()) {
+            String name = installed.getName();
+            if (name.equalsIgnoreCase(plugin.getName())) continue; // AutoUpdater 自身は対象外
+
+            ManagedPlugin mp = pluginsConfig.getOverride(name);
+            if (mp == null) {
+                mp = SelfDeclaredConfig.read(name, resolveOriginalJarFile(name));
             }
-            Version current = resolveInstalledVersion(mp.getName());
+            if (mp == null) {
+                if (!configManager.isAutoDiscoverUnlisted()) continue;
+                mp = new ManagedPlugin(name, true, UpdateSourceType.NONE, "", "", "", "paper", "", -1);
+            }
+
+            Version current = Version.parse(installed.getDescription().getVersion());
             PluginUpdateState state = new PluginUpdateState(mp, current);
-            if (current == null) {
-                state.setStatus(UpdateStatus.NOT_INSTALLED);
-            } else if (!mp.isEnabled()) {
+            if (!mp.isEnabled()) {
                 state.setStatus(UpdateStatus.DISABLED);
             }
-            states.put(mp.getName(), state);
+            states.put(name, state);
+        }
+
+        // plugins.yml に登録されているがサーバーに未インストールのものは、管理画面に分かるよう残しておく。
+        for (String name : pluginsConfig.getAllOverrideNames()) {
+            if (states.containsKey(name) || name.equalsIgnoreCase(plugin.getName())) continue;
+            PluginUpdateState state = new PluginUpdateState(pluginsConfig.getOverride(name), null);
+            state.setStatus(UpdateStatus.NOT_INSTALLED);
+            states.put(name, state);
         }
     }
 
@@ -263,12 +285,6 @@ public final class UpdateManager {
         }
     }
 
-    private Version resolveInstalledVersion(String pluginName) {
-        Plugin p = Bukkit.getPluginManager().getPlugin(pluginName);
-        if (p == null) return null;
-        return Version.parse(p.getDescription().getVersion());
-    }
-
     private Path resolveOriginalJarFile(String pluginName) {
         Plugin p = Bukkit.getPluginManager().getPlugin(pluginName);
         if (p instanceof JavaPlugin jp) {
@@ -286,7 +302,10 @@ public final class UpdateManager {
 
     private static String rootMessage(Throwable t) {
         Throwable cur = t;
-        while (cur.getCause() != null && cur.getMessage() == null) {
+        while (cur.getCause() != null
+                && (cur instanceof java.util.concurrent.CompletionException
+                    || cur instanceof java.util.concurrent.ExecutionException
+                    || cur.getMessage() == null)) {
             cur = cur.getCause();
         }
         return cur.getMessage() != null ? cur.getMessage() : cur.toString();

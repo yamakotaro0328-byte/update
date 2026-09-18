@@ -1,22 +1,33 @@
 # =====================================================
-#  AutoUpdater が管理するプラグインの一覧 (自作/一般プラグイン問わず)
+#  AutoUpdater の手動オーバーライド一覧 (任意)
 # =====================================================
 #
+# デフォルト (config.yml の auto-discover-unlisted: true) では、
+# ここに何も書かなくても、サーバーにインストール済みの全プラグインが
+# 自動的にチェック対象になります。更新元は次の優先順位で決まります:
+#
+#   1. このファイルへの明示登録 (最優先。曖昧な名前や private リポジトリなどの調整用)
+#   2. プラグイン自身の plugin.yml に書かれた "autoupdate:" セクション (開発者による自己申告)
+#   3. プラグイン名から Modrinth の slug を自動推測 (例: "EssentialsX" -> "essentialsx")
+#
+# 3 で見つからない場合はステータスが ERROR になるだけで、他のプラグインの動作には影響しません。
+# 特定のプラグインだけ自動検出をやめたい場合は enabled: false を指定してください。
+#
 # plugins:
-#   <サーバーにインストールされているプラグイン名 (plugin.yml の name と一致)>:
+#   <プラグイン名 (plugin.yml の name と一致)>:
 #     enabled: true
 #     source: github            # github / modrinth / spigot
 #
-#     # source: github の場合
+#     # source: github
 #     repository: "owner/repo"
 #     asset-pattern: ""         # Release Assets 内の jar 名の部分一致パターン (空なら自動判別)
 #
-#     # source: modrinth の場合 (一般配布プラグインもここで対応可能)
+#     # source: modrinth
 #     project: "project-slug-or-id"
-#     loader: "paper"           # フィルタするローダー (paper/purpur 等)
+#     loader: "paper"
 #     game-version: ""          # 空ならサーバーの現在バージョンでフィルタ
 #
-#     # source: spigot の場合 (SpigotMC, Spiget 経由)
+#     # source: spigot (SpigotMC, Spiget 経由)
 #     resource-id: 12345
 #
 # 例:
@@ -26,12 +37,6 @@
 #     enabled: true
 #     source: github
 #     repository: "yourname/Jobs"
-#
-#   EssentialsX:
-#     enabled: true
-#     source: modrinth
-#     project: "essentialsx"
-#     loader: "paper"
 #
 #   ViaVersion:
 #     enabled: true

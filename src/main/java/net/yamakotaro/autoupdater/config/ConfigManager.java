@@ -15,6 +15,7 @@ public final class ConfigManager {
     private long checkIntervalMinutes;
     private boolean downloadUpdates;
     private boolean notifyAdmin;
+    private boolean autoDiscoverUnlisted;
     private String minecraftCurrentVersion;
     private boolean httpsOnly;
     private boolean requireHash;
@@ -43,6 +44,7 @@ public final class ConfigManager {
         checkIntervalMinutes = Math.max(1, c.getLong("auto-update.check-interval-minutes", 30));
         downloadUpdates = c.getBoolean("auto-update.download-updates", true);
         notifyAdmin = c.getBoolean("auto-update.notify-admin", true);
+        autoDiscoverUnlisted = c.getBoolean("auto-update.auto-discover-unlisted", true);
 
         minecraftCurrentVersion = c.getString("minecraft.current-version", "");
 
@@ -68,6 +70,7 @@ public final class ConfigManager {
     public long getCheckIntervalMinutes() { return checkIntervalMinutes; }
     public boolean isDownloadUpdates() { return downloadUpdates; }
     public boolean isNotifyAdmin() { return notifyAdmin; }
+    public boolean isAutoDiscoverUnlisted() { return autoDiscoverUnlisted; }
     public String getMinecraftCurrentVersion() { return minecraftCurrentVersion; }
     public boolean isHttpsOnly() { return httpsOnly; }
     public boolean isRequireHash() { return requireHash; }

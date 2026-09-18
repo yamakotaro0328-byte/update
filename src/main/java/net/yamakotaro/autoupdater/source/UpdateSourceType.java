@@ -4,7 +4,9 @@ public enum UpdateSourceType {
     GITHUB,
     MODRINTH,
     SPIGOT,
-    CUSTOM;
+    CUSTOM,
+    /** plugins.yml に未登録・plugin.yml にも自己申告が無いプラグイン用。チェック時に自動推測する。 */
+    NONE;
 
     public static UpdateSourceType fromConfig(String value) {
         if (value == null) return GITHUB;
@@ -12,6 +14,7 @@ public enum UpdateSourceType {
             case "modrinth" -> MODRINTH;
             case "spigot", "spigotmc" -> SPIGOT;
             case "custom" -> CUSTOM;
+            case "none" -> NONE;
             default -> GITHUB;
         };
     }

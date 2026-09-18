@@ -19,6 +19,12 @@ auto-update:
   # 管理者(autoupdater.admin 権限保持者)へ通知するか
   notify-admin: true
 
+  # plugins.yml に登録されていないプラグインも自動で検出・管理対象にするか。
+  # true: インストール済みの全プラグインを対象に、plugin.yml の自己申告 -> Modrinth 自動推測の順で
+  #       更新元を探す (plugins.yml への登録は不要、精度を上げたい場合のみ上書き登録すればよい)
+  # false: plugins.yml に明示登録したプラグインのみを対象にする
+  auto-discover-unlisted: true
+
 # -----------------------------------------------------
 # サーバーの Minecraft バージョン (互換性チェックに使用)
 # 空の場合は Bukkit.getMinecraftVersion() から自動検出する
