@@ -1,0 +1,41 @@
+# =====================================================
+#  AutoUpdater が管理するプラグインの一覧 (自作/一般プラグイン問わず)
+# =====================================================
+#
+# plugins:
+#   <サーバーにインストールされているプラグイン名 (plugin.yml の name と一致)>:
+#     enabled: true
+#     source: github            # github / modrinth / spigot
+#
+#     # source: github の場合
+#     repository: "owner/repo"
+#     asset-pattern: ""         # Release Assets 内の jar 名の部分一致パターン (空なら自動判別)
+#
+#     # source: modrinth の場合 (一般配布プラグインもここで対応可能)
+#     project: "project-slug-or-id"
+#     loader: "paper"           # フィルタするローダー (paper/purpur 等)
+#     game-version: ""          # 空ならサーバーの現在バージョンでフィルタ
+#
+#     # source: spigot の場合 (SpigotMC, Spiget 経由)
+#     resource-id: 12345
+#
+# 例:
+#
+# plugins:
+#   Jobs:
+#     enabled: true
+#     source: github
+#     repository: "yourname/Jobs"
+#
+#   EssentialsX:
+#     enabled: true
+#     source: modrinth
+#     project: "essentialsx"
+#     loader: "paper"
+#
+#   ViaVersion:
+#     enabled: true
+#     source: spigot
+#     resource-id: 19254
+
+plugins: {}

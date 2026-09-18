@@ -1,0 +1,26 @@
+name: AutoUpdater
+version: '${version}'
+main: net.yamakotaro.autoupdater.AutoUpdaterPlugin
+api-version: '1.26'
+author: yamakotaro
+description: 自作プラグインを GitHub Releases 等から自動でチェック・ダウンロードし、次回サーバー起動時に適用するアップデータ。
+website: https://github.com/yamakotaro0328-byte/update
+load: POSTWORLD
+
+commands:
+  autoupdate:
+    description: AutoUpdater のステータス表示・操作を行います。
+    usage: |
+      /<command> - 現在のアップデート状況を表示
+      /<command> check - 手動でアップデートを確認
+      /<command> update [プラグイン名] - アップデートをダウンロード
+      /<command> rollback <プラグイン名> - 直前のバックアップへロールバック予約
+      /<command> reload - config.yml / plugins.yml を再読み込み
+      /<command> gui - GUI を開く (プレイヤーのみ)
+    permission: autoupdater.admin
+    aliases: [aupdate, autoupdater]
+
+permissions:
+  autoupdater.admin:
+    description: AutoUpdater の全コマンド使用とアップデート通知の受信を許可します。
+    default: op
