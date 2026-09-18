@@ -13,13 +13,21 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * SpigotMC のリソースIDはプラグイン名から規則的に推測できないため、
- * Spiget の検索 API でプラグイン名と完全一致 (記号・大小文字を無視) するリソースを探す。
- * 複数該当・該当無しの場合は諦めて -1 を返す (誤検出よりも未検出を優先する)。
+ * Spiget の検索 API (プラグイン名と関連度順にソートされる) から候補を探す。
+ * 誤ったプラグインを自動ダウンロードしてしまうリスクを避けるため、
+ * 名前が十分近いと判断できる場合のみ採用し、それ以外は諦めて -1 を返す。
+ *
+ * 優先順位:
+ *   1. 完全一致 (記号・大小文字を無視して比較)
+ *   2. リソース名がプラグイン名で始まる (例: プラグイン名 "EssentialsX" に対し
+ *      リソース名 "EssentialsX - Unlock the essentials for your server!" 等)
+ *      検索結果は関連度順なので、この条件に最初に合致したものを採用する
  */
 public final class SpigotResourceFinder {
 
     private static final String USER_AGENT = "AutoUpdater-Plugin";
     private static final String API_BASE = "https://api.spiget.org/v2";
+    private static final int MIN_PREFIX_MATCH_LENGTH = 4;
 
     private SpigotResourceFinder() {}
 
@@ -30,22 +38,36 @@ public final class SpigotResourceFinder {
         return Http.getText(url, USER_AGENT).thenApply(response -> {
             if (response.statusCode() != 200) return -1;
             try {
-                JsonArray results = JsonParser.parseString(response.body()).getAsJsonArray();
-                String target = normalize(pluginName);
-                Integer match = null;
-                for (JsonElement el : results) {
-                    JsonObject obj = el.getAsJsonObject();
-                    if (!obj.has("id") || !obj.has("name")) continue;
-                    if (normalize(obj.get("name").getAsString()).equals(target)) {
-                        if (match != null) return -1; // 複数一致は誤検出のリスクが高いので採用しない
-                        match = obj.get("id").getAsInt();
-                    }
-                }
-                return match == null ? -1 : match;
+                return pickBestMatch(pluginName, JsonParser.parseString(response.body()).getAsJsonArray());
             } catch (Exception e) {
                 return -1;
             }
         }).exceptionally(e -> -1);
+    }
+
+    private static int pickBestMatch(String pluginName, JsonArray results) {
+        String target = normalize(pluginName);
+        Integer firstExact = null;
+        Integer firstPrefix = null;
+
+        for (JsonElement el : results) {
+            JsonObject obj = el.getAsJsonObject();
+            if (!obj.has("id") || !obj.has("name")) continue;
+            String normalizedName = normalize(obj.get("name").getAsString());
+            int id = obj.get("id").getAsInt();
+
+            if (normalizedName.equals(target)) {
+                if (firstExact == null) firstExact = id;
+            } else if (firstPrefix == null
+                    && target.length() >= MIN_PREFIX_MATCH_LENGTH
+                    && normalizedName.startsWith(target)) {
+                firstPrefix = id;
+            }
+        }
+
+        if (firstExact != null) return firstExact;
+        if (firstPrefix != null) return firstPrefix;
+        return -1;
     }
 
     private static String normalize(String s) {
