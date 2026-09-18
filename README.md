@@ -28,12 +28,17 @@
    1. `plugins/AutoUpdater/plugins.yml` への明示登録 (任意。精度を上げたい場合のみ)
    2. 各プラグイン自身の `plugin.yml` に書かれた `autoupdate:` セクション (開発者による自己申告)
    3. プラグイン名から Modrinth の slug を自動推測 (例: `EssentialsX` -> `essentialsx`)
+   4. 3 で見つからなければ、Spiget の検索 API でプラグイン名と完全一致する SpigotMC リソースを自動検索
 
-   3 で解決できないプラグインはステータスが `ERROR` になるだけで、他のプラグインには影響しません。
+   4 まで試して解決できないプラグインはステータスが `ERROR` になるだけで、他のプラグインには影響しません。
    自動検出自体を止めたい場合は `config.yml` の `auto-update.auto-discover-unlisted: false` にしてください。
 
-2. GitHub Releases や Spigot(resource-id) は自動推測できないため、それらを使いたい場合や、
-   Modrinth の slug 推測がうまくいかない場合は `plugins.yml` に手動登録して上書きします:
+   なお SpigotMC は、作者が外部ダウンロードを許可していないリソースだと検出はできてもダウンロードが
+   `HTTP 403` で失敗します (Spiget/SpigotMC 側の仕様上の制約で、こちらでは回避できません)。その場合は
+   ステータスに `ERROR` と理由が表示されるので、手動ダウンロードに切り替えてください。
+
+2. GitHub Releases は自動推測できないため (owner/repo は名前から分からない)、それを使いたい場合や、
+   自動検出が誤って別プロジェクトに一致してしまった場合は `plugins.yml` に手動登録して上書きします:
 
 ```yaml
 plugins:

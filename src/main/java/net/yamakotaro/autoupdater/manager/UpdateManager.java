@@ -80,11 +80,12 @@ public final class UpdateManager {
                 configManager.getBackupKeepCount());
 
         ModrinthSource modrinthSource = new ModrinthSource();
+        SpigotSource spigotSource = new SpigotSource();
         sources.clear();
         sources.put(UpdateSourceType.GITHUB, new GitHubReleaseSource(configManager.getGithubApiBaseUrl()));
         sources.put(UpdateSourceType.MODRINTH, modrinthSource);
-        sources.put(UpdateSourceType.SPIGOT, new SpigotSource());
-        sources.put(UpdateSourceType.NONE, new AutoDiscoverySource(modrinthSource));
+        sources.put(UpdateSourceType.SPIGOT, spigotSource);
+        sources.put(UpdateSourceType.NONE, new AutoDiscoverySource(modrinthSource, spigotSource));
         // CUSTOM は将来の独自アップデートサーバー対応用 (未実装時は checkOne 側で ERROR にする)
 
         pluginsConfig.load();
