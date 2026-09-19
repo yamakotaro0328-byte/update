@@ -1,7 +1,7 @@
 name: AutoUpdater
 version: '${version}'
 main: net.yamakotaro.autoupdater.AutoUpdaterPlugin
-api-version: '1.26'
+api-version: '26.2'
 author: yamakotaro
 description: 自作プラグインを GitHub Releases 等から自動でチェック・ダウンロードし、次回サーバー起動時に適用するアップデータ。
 website: https://github.com/yamakotaro0328-byte/update

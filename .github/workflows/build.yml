@@ -21,9 +21,6 @@ jobs:
       - name: Run Gradle itself on JDK 21 (Gradle 8.x can't run on JDK 25 yet; JDK 25 is only used as the compile toolchain)
         run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
 
-      - name: Show available paper-api versions
-        run: curl -s https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/maven-metadata.xml
-
       - name: Build
         run: ./gradlew build --no-daemon
 
