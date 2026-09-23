@@ -5,6 +5,9 @@ on:
     branches: ["**"]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,3 +31,13 @@ jobs:
         with:
           name: AutoUpdater
           path: build/libs/*.jar
+
+      # Actions のアーティファクトは GitHub ログインが無いとダウンロードできないため、
+      # ログイン不要でダウンロードできる公開 Release にも同じ jar を置く (push のたびに上書き)。
+      - name: Publish as a public download (GitHub Release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-build
+          name: Latest build
+          prerelease: true
+          files: build/libs/*.jar
